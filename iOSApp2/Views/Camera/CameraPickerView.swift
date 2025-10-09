@@ -3,8 +3,9 @@ import UIKit
 
 struct CameraPickerView: UIViewControllerRepresentable {
     var onImage: (UIImage?) -> Void
+    @Environment(\.presentationMode) private var presentationMode
 
-    func makeCoordinator() -> Coordinator { Coordinator(onImage: onImage) }
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
@@ -17,17 +18,19 @@ struct CameraPickerView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
 
     final class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
-        let onImage: (UIImage?) -> Void
-        init(onImage: @escaping (UIImage?) -> Void) { self.onImage = onImage }
+        let parent: CameraPickerView
+        init(_ parent: CameraPickerView) { self.parent = parent }
 
         func imagePickerController(_ picker: UIImagePickerController,
                                    didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            let image = (info[.originalImage] as? UIImage)
-            picker.dismiss(animated: true) { self.onImage(image) }
+            let image = info[.originalImage] as? UIImage
+            parent.onImage(image)
+            parent.presentationMode.wrappedValue.dismiss()
         }
 
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            picker.dismiss(animated: true) { self.onImage(nil) }
+            parent.onImage(nil)
+            parent.presentationMode.wrappedValue.dismiss()
         }
     }
 }
