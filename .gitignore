@@ -23,3 +23,8 @@ Carthage/Build/
 # User-specific Xcode settings
 **/*.xcworkspace/xcuserdata/
 **/*.xcodeproj/project.xcworkspace/xcuserdata/
+.DS_Store
+*.xcuserstate
+xcuserdata/
+DerivedData/
+
