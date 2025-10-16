@@ -1,26 +1,19 @@
 import Foundation
 
-struct HuntItem: Identifiable, Hashable, Codable {
-    let id: UUID
-    var name: String
-    var address: String
-    var description: String
-    var clue: String
-    var lat: Double? = nil
-    var lon: Double? = nil
+public struct HuntItem: Identifiable, Hashable, Codable {
+    public let id: UUID
+    public var name: String
+    public var address: String
+    public var description: String
+    public var clue: String
+    public var lat: Double? = nil
+    public var lon: Double? = nil
 
-    var storageKey: String { "hunt_item_" + id.uuidString }
+    public var storageKey: String { "hunt_item_" + id.uuidString }
 }
 
-struct HuntProgress: Codable {
-    var found: Bool
-    var imageDataBase64: String?
-    var foundDate: Date? = nil
-}
-
-// Renamed to avoid clashes with any other 'Seed'
-enum AppSeed {
-    static let items: [HuntItem] = [
+public enum AppSeed {
+    public static let items: [HuntItem] = [
         .init(id: UUID(), name: "City Diner",    address: "12 King St.",    description: "Cozy local restaurant",   clue: "Look by the pickup counter."),
         .init(id: UUID(), name: "Grand Cinema",  address: "45 Queen Ave.",   description: "Indie movie theatre",     clue: "Check below the marquee poster."),
         .init(id: UUID(), name: "Pages & Co.",   address: "77 Maple Rd.",    description: "Independent bookstore",   clue: "Find the classics wall."),

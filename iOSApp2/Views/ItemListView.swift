@@ -3,6 +3,7 @@ import UIKit
 
 struct ItemListView: View {
     @EnvironmentObject var vm: HuntViewModel
+
     @State private var showSubmitAlert = false
     @State private var showResetConfirm = false
     @State private var shareURL: URL? = nil
@@ -21,10 +22,12 @@ struct ItemListView: View {
     var body: some View {
         Group {
             if vm.filtered.isEmpty {
-                ContentUnavailableView("No matches",
-                                       systemImage: "magnifyingglass",
-                                       description: Text("Try a different search."))
-                    .padding(.top, 40)
+                ContentUnavailableView(
+                    "No matches",
+                    systemImage: "magnifyingglass",
+                    description: Text("Try a different search.")
+                )
+                .padding(.top, 40)
             } else {
                 List {
                     Section(header: Text("Locations")) {
@@ -34,10 +37,11 @@ struct ItemListView: View {
                                         isFound: vm.isFound(item),
                                         thumb: vm.image(for: item))
                             }
-                            // Swipe to clear photo
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 if vm.isFound(item) {
-                                    Button(role: .destructive) { vm.clearFound(item) } label: {
+                                    Button(role: .destructive) {
+                                        vm.clearFound(item)
+                                    } label: {
                                         Label("Clear Photo", systemImage: "trash")
                                     }
                                 }
@@ -53,33 +57,38 @@ struct ItemListView: View {
         .searchable(text: $vm.filterText,
                     placement: .navigationBarDrawer(displayMode: .always),
                     prompt: "Search locations…")
-        .toolbar(content: {
-            // TOP RIGHT: Save as PDF + progress ring + settings
+        // Keep toolbar items simple & separate so the compiler is happy
+        .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                HStack(spacing: 12) {
-                    Button("Save as PDF") {
+                Button("Save as PDF") {
+                    Task {
                         do {
-                            let url = try PDFExportService.createReport(items: vm.items, progress: vm.progress)
+                            let url = try await PDFExportService.createReportWithMap(
+                                items: vm.items,
+                                progress: vm.progress
+                            )
                             shareURL = url
                             showShare = true
                         } catch {
                             print("PDF export failed:", error.localizedDescription)
                         }
                     }
-                    .fontWeight(.semibold)
-
-                    ProgressRing(progress: Double(vm.foundCount) / 10.0)
-
-                    Button {
-                        showSettings = true
-                    } label: {
-                        Image(systemName: "gearshape")
-                    }
-                    .accessibilityLabel("Settings")
                 }
             }
 
-            // BOTTOM BAR: Reset left, Submit right (smart label + disabled when 0)
+            ToolbarItem(placement: .navigationBarTrailing) {
+                ProgressRing(progress: Double(vm.foundCount) / 10.0)
+            }
+
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showSettings = true
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+                .accessibilityLabel("Settings")
+            }
+
             ToolbarItem(placement: .bottomBar) {
                 HStack {
                     Button(role: .destructive) {
@@ -100,21 +109,16 @@ struct ItemListView: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-        })
+        }
         .navigationDestination(for: HuntItem.self) { item in
             ItemDetailView(item: item)
         }
-        // Share sheet for the full report
         .sheet(isPresented: $showShare) {
-            if let url = shareURL {
-                ShareSheet(activityItems: [url])
-            }
+            if let url = shareURL { ShareSheet(activityItems: [url]) }
         }
-        // Settings sheet
         .sheet(isPresented: $showSettings) {
             SettingsView().environmentObject(vm)
         }
-        // Submit summary with "Copy Code" + inline reset action
         .alert(vm.discountSummary().title, isPresented: $showSubmitAlert) {
             Button("OK", role: .cancel) { }
             if vm.foundCount >= 5 {
@@ -129,14 +133,12 @@ struct ItemListView: View {
         } message: {
             Text(vm.discountSummary().message)
         }
-        // Dedicated Reset confirmation
         .alert("Reset all progress?", isPresented: $showResetConfirm) {
             Button("Cancel", role: .cancel) { }
             Button("Reset", role: .destructive) { vm.resetAll() }
         } message: {
             Text("This will clear all found items and photos. You can’t undo this.")
         }
-        // Simple congrats banner when hitting 10/10
         .onChange(of: vm.foundCount) { _, new in
             if new == 10 {
                 showCongrats = true
