@@ -1,3 +1,4 @@
+// iOSApp2/Views/Sharing/FlipCardView.swift
 import SwiftUI
 
 struct FlipCardView<Front: View, Back: View>: View {
@@ -15,15 +16,12 @@ struct FlipCardView<Front: View, Back: View>: View {
 
     var body: some View {
         ZStack {
-            // Card background rotates with content
             RoundedRectangle(cornerRadius: 20)
                 .fill(.thinMaterial)
                 .shadow(radius: 6)
 
-            // Faces
             ZStack {
                 front.opacity(isFlipped ? 0 : 1)
-
                 back
                     .opacity(isFlipped ? 1 : 0)
                     .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))

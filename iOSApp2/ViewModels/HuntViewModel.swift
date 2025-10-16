@@ -2,9 +2,11 @@ import Foundation
 import SwiftUI
 import UIKit
 
+@MainActor
 final class HuntViewModel: ObservableObject {
+
     // Data
-    @Published private(set) var items: [HuntItem] = AppSeed.items   // ← changed
+    @Published private(set) var items: [HuntItem] = AppSeed.items
     @Published private(set) var progress: [UUID: HuntProgress] = [:]
 
     // UI
@@ -12,13 +14,20 @@ final class HuntViewModel: ObservableObject {
 
     init() { loadProgress() }
 
+    // For list/search
     var filtered: [HuntItem] {
         let q = filterText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !q.isEmpty else { return items }
-        return items.filter { $0.name.localizedCaseInsensitiveContains(q) || $0.address.localizedCaseInsensitiveContains(q) }
+        return items.filter {
+            $0.name.localizedCaseInsensitiveContains(q) ||
+            $0.address.localizedCaseInsensitiveContains(q)
+        }
     }
 
-    // MARK: - Progress
+    // Count used across the app (e.g., toolbar ring, alerts)
+    var foundCount: Int { progress.values.filter { $0.found }.count }
+
+    // MARK: - Progress helpers
     func isFound(_ item: HuntItem) -> Bool { progress[item.id]?.found == true }
 
     func image(for item: HuntItem) -> UIImage? {
@@ -27,30 +36,48 @@ final class HuntViewModel: ObservableObject {
         return UIImage(data: data)
     }
 
-    func markFound(_ item: HuntItem, image: UIImage) {
+    /// Mark an item as found, store the (resized) photo and optional location info.
+    func markFound(_ item: HuntItem,
+                   image: UIImage,
+                   address: String? = nil,
+                   latitude: Double? = nil,
+                   longitude: Double? = nil) {
         let resized = image.resizedForThumb(maxDimension: 900)
         let data = resized.jpegData(compressionQuality: 0.8)
         let b64 = data?.base64EncodedString()
 
-        var hp = progress[item.id] ?? HuntProgress(found: false, imageDataBase64: nil, foundDate: nil)
+        var hp = progress[item.id] ?? HuntProgress(
+            found: false, imageDataBase64: nil, foundDate: nil,
+            address: nil, latitude: nil, longitude: nil
+        )
         hp.found = true
         hp.imageDataBase64 = b64
         hp.foundDate = Date()
+        hp.address = address
+        hp.latitude = latitude
+        hp.longitude = longitude
+
         progress[item.id] = hp
         saveProgress(for: item, hp)
         objectWillChange.send()
     }
 
+    /// Clear a found item (removes photo + timestamp + saved location).
     func clearFound(_ item: HuntItem) {
-        let hp = HuntProgress(found: false, imageDataBase64: nil, foundDate: nil)
-        progress[item.id] = hp
-        saveProgress(for: item, hp)
+        let cleared = HuntProgress(
+            found: false,
+            imageDataBase64: nil,
+            foundDate: nil,
+            address: nil,
+            latitude: nil,
+            longitude: nil
+        )
+        progress[item.id] = cleared
+        saveProgress(for: item, cleared)
         objectWillChange.send()
     }
 
-    var foundCount: Int { progress.values.filter { $0.found }.count }
-
-    // MARK: - Discount
+    // MARK: - Discount summary
     func discountSummary() -> (title: String, message: String) {
         let n = foundCount
         switch n {
@@ -69,7 +96,14 @@ final class HuntViewModel: ObservableObject {
 
     func resetAll() {
         for item in items {
-            let hp = HuntProgress(found: false, imageDataBase64: nil, foundDate: nil)
+            let hp = HuntProgress(
+                found: false,
+                imageDataBase64: nil,
+                foundDate: nil,
+                address: nil,
+                latitude: nil,
+                longitude: nil
+            )
             progress[item.id] = hp
             saveProgress(for: item, hp)
         }
@@ -84,7 +118,14 @@ final class HuntViewModel: ObservableObject {
                let hp = try? JSONDecoder().decode(HuntProgress.self, from: data) {
                 dict[item.id] = hp
             } else {
-                dict[item.id] = HuntProgress(found: false, imageDataBase64: nil, foundDate: nil)
+                dict[item.id] = HuntProgress(
+                    found: false,
+                    imageDataBase64: nil,
+                    foundDate: nil,
+                    address: nil,
+                    latitude: nil,
+                    longitude: nil
+                )
             }
         }
         self.progress = dict
@@ -111,19 +152,3 @@ extension UIImage {
         return UIGraphicsGetImageFromCurrentImageContext() ?? self
     }
 }
-// MARK: - Test helpers
-#if DEBUG
-import Foundation
-
-extension HuntViewModel {
-    /// Test-only helper to fabricate N "found" items without images.
-    @MainActor
-    func _testSetFoundCount(_ n: Int) {
-        var dict: [UUID: HuntProgress] = [:]
-        for (i, item) in items.enumerated() {
-            dict[item.id] = HuntProgress(found: i < n, imageDataBase64: nil, foundDate: nil)
-        }
-        self.progress = dict
-    }
-}
-#endif

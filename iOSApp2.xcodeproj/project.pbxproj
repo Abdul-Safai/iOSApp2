@@ -399,7 +399,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "We use the camera to capture the scavenger-hunt item photo.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "We use your location to attach the address to each found item in your report.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to attach the address and coordinates to each found item.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We use your photo to verify scavenger hunt finds.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -430,7 +431,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "We use the camera to capture the scavenger-hunt item photo.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "We use your location to attach the address to each found item in your report.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to attach the address and coordinates to each found item.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We use your photo to verify scavenger hunt finds.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

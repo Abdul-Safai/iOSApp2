@@ -3,28 +3,23 @@ DerivedData/
 build/
 *.xcuserstate
 *.xccheckout
-*.xcscmblueprint
-*.xcuserdatad/
-**/*.moved-aside
+*.xcuserdatad
+*.xcworkspace/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
 
-# Swift Package Manager
-/.build/
-/.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+# SwiftPM
+.swiftpm/
+.build/
 
-# CocoaPods
+# Cocoapods / Carthage (if used)
 Pods/
-
-# Carthage
+Carthage/
 Carthage/Build/
 
-# macOS
-.DS_Store
+# Fastlane
+fastlane/report.xml
+fastlane/test_output
 
-# User-specific Xcode settings
-**/*.xcworkspace/xcuserdata/
-**/*.xcodeproj/project.xcworkspace/xcuserdata/
-.DS_Store
-*.xcuserstate
-xcuserdata/
-DerivedData/
-
+# Misc
+*.DS_Store
